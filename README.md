@@ -1,5 +1,9 @@
 # Laravel LINE Bot Example
 
+[![Tests](https://github.com/a861252012/laravel-line-bot-example/actions/workflows/tests.yml/badge.svg)](https://github.com/a861252012/laravel-line-bot-example/actions/workflows/tests.yml)
+[![Latest release](https://img.shields.io/github/v/release/a861252012/laravel-line-bot-example)](https://github.com/a861252012/laravel-line-bot-example/releases/latest)
+[![License](https://img.shields.io/github/license/a861252012/laravel-line-bot-example)](LICENSE)
+
 一個可直接延伸的 Laravel 13 LINE Messaging API 範例。它先把 webhook 安全、事件去重與簡單客服流程做好，再逐步擴充實際業務。
 
 ## 已實作功能
@@ -106,10 +110,9 @@ vendor/bin/pint --test
 - 不用 queue 延遲 reply；reply token 只能用一次且有時效，任何耗時工作應改為立即回覆後以 Queue 與 push message 接手。
 - LINE API 回覆失敗的事件會標示為 `failed`，尚未提供自動重送機制。
 
-## 建議 GitHub metadata
+## Release
 
-- Description：`Laravel 13 LINE Messaging API example with signed webhooks, event deduplication, FAQ and ticket workflow.`
-- Topics：`laravel`, `line`, `line-bot`, `messaging-api`, `webhook`, `php`
+[v0.1.0](https://github.com/a861252012/laravel-line-bot-example/releases/tag/v0.1.0) 是第一個公開版本，包含簽章驗證、事件去重、FAQ／工單流程、文件與 CI。
 
 ## License
 
