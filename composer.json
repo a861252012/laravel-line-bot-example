@@ -1,7 +1,7 @@
 {
-    "name": "a861252012/laravel-line-bot-example",
+    "name": "a861252012/laravel-line-bot-practice",
     "type": "project",
-    "description": "A production-minded Laravel example for the LINE Messaging API.",
+    "description": "A production-minded Laravel practice project for the LINE Messaging API.",
     "keywords": ["laravel", "line", "line-bot", "messaging-api", "webhook"],
     "license": "MIT",
     "require": {

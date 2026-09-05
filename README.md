@@ -1,10 +1,10 @@
-# Laravel LINE Bot Example
+# Laravel LINE Bot Practice
 
-[![Tests](https://github.com/a861252012/laravel-line-bot-example/actions/workflows/tests.yml/badge.svg)](https://github.com/a861252012/laravel-line-bot-example/actions/workflows/tests.yml)
-[![Latest release](https://img.shields.io/github/v/release/a861252012/laravel-line-bot-example)](https://github.com/a861252012/laravel-line-bot-example/releases/latest)
-[![License](https://img.shields.io/github/license/a861252012/laravel-line-bot-example)](LICENSE)
+[![Tests](https://github.com/a861252012/laravel-line-bot-practice/actions/workflows/tests.yml/badge.svg)](https://github.com/a861252012/laravel-line-bot-practice/actions/workflows/tests.yml)
+[![Latest release](https://img.shields.io/github/v/release/a861252012/laravel-line-bot-practice)](https://github.com/a861252012/laravel-line-bot-practice/releases/latest)
+[![License](https://img.shields.io/github/license/a861252012/laravel-line-bot-practice)](LICENSE)
 
-一個可直接延伸的 Laravel 13 LINE Messaging API 範例。它先把 webhook 安全、事件去重與簡單客服流程做好，再逐步擴充實際業務。
+一個可直接延伸的 Laravel 13 LINE Messaging API 練習專案。它先把 webhook 安全、事件去重與簡單客服流程做好，再逐步擴充實際業務。
 
 ## 已實作功能
 
@@ -38,8 +38,8 @@
 ## 安裝
 
 ```bash
-git clone https://github.com/a861252012/laravel-line-bot-example.git
-cd laravel-line-bot-example
+git clone https://github.com/a861252012/laravel-line-bot-practice.git
+cd laravel-line-bot-practice
 composer install
 cp .env.example .env
 php artisan key:generate
@@ -114,7 +114,7 @@ vendor/bin/pint --test
 
 ## Release
 
-[v0.1.1](https://github.com/a861252012/laravel-line-bot-example/releases/tag/v0.1.1) 是目前穩定版；[v0.1.0](https://github.com/a861252012/laravel-line-bot-example/releases/tag/v0.1.0) 是第一個公開版本。兩者都包含簽章驗證、事件去重、FAQ／工單流程、文件與 CI。
+[v0.1.1](https://github.com/a861252012/laravel-line-bot-practice/releases/tag/v0.1.1) 是目前穩定版；[v0.1.0](https://github.com/a861252012/laravel-line-bot-practice/releases/tag/v0.1.0) 是第一個公開版本。兩者都包含簽章驗證、事件去重、FAQ／工單流程、文件與 CI。
 
 ## License
 
