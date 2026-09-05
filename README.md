@@ -1,66 +1,116 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel LINE Bot Example
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+一個可直接延伸的 Laravel 13 LINE Messaging API 範例。它先把 webhook 安全、事件去重與簡單客服流程做好，再逐步擴充實際業務。
 
-## About Laravel
+## 已實作功能
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- 使用未修改的 raw request body 驗證 `x-line-signature`（HMAC-SHA256）。
+- 以 `webhookEventId` 建立唯一索引，避免 LINE 重送事件時重複處理。
+- 保存 `line_users`、`line_events` 與 `tickets`。
+- FAQ Flex Message、Quick Reply、Postback 與 Rich Menu 設計稿。
+- 文字指令建立、查詢、關閉案件。
+- 圖片、位置與附件事件會保存原始 webhook 事件並回覆確認訊息。
+- PHPUnit webhook 測試與 GitHub Actions CI。
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 指令示範
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| 輸入或操作 | 結果 |
+| --- | --- |
+| `幫助` | 顯示 Quick Reply 選單 |
+| `FAQ` | 顯示 Flex Message 常見問題 |
+| `問題 無法登入` | 建立一筆開啟中的案件 |
+| `我的案件` | 顯示最近 5 筆開啟中的案件 |
+| `關閉 #1` | 關閉自己的案件 |
 
-## Learning Laravel
+## 環境需求
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- PHP 8.3 以上
+- Composer 2
+- MySQL、MariaDB 或 SQLite
+- LINE Developers 的 Messaging API channel
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## 安裝
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+git clone https://github.com/a861252012/laravel-line-bot-example.git
+cd laravel-line-bot-example
+composer install
+cp .env.example .env
+php artisan key:generate
+```
 
-## Laravel Sponsors
+設定 `.env` 的資料庫與 LINE 憑證：
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```dotenv
+LINE_CHANNEL_ACCESS_TOKEN=
+LINE_CHANNEL_SECRET=
+```
 
-### Premium Partners
+接著執行資料表 migration：
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+```bash
+php artisan migrate
+```
 
-## Contributing
+本機啟動：
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+php artisan serve
+```
 
-## Code of Conduct
+## LINE Developers 設定
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+1. 在 LINE Developers Console 建立或開啟 Messaging API channel。
+2. 把 Channel access token 與 Channel secret 填入 `.env`；不要提交 `.env`。
+3. 在 Messaging API 的 Webhook settings 設定：
 
-## Security Vulnerabilities
+   ```text
+   https://你的網域/api/webhook
+   ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+4. 開啟 webhook，並使用 Console 的 Verify 功能確認 endpoint 可收到請求。
+
+公開網址必須是 HTTPS。若是本機開發，可使用受信任的 tunnel 服務提供暫時 HTTPS URL。
+
+## Rich Menu
+
+`resources/line/rich-menu.json` 是三個入口（FAQ、建立問題、我的案件）的 Rich Menu 設計稿。
+
+LINE Rich Menu 還需要一張 2500 × 1686 的圖片。請透過 LINE Official Account Manager 或 LINE API 上傳圖片、建立 menu，並設定為預設 Rich Menu；本專案不會在部署時自動修改你的 LINE channel。
+
+## 架構
+
+```text
+POST /api/webhook
+  -> VerifyLineSignature
+  -> LineBotController
+  -> LineWebhookService
+  -> LineWebhookRepository / LineMessagingService
+```
+
+Controller 只負責接收 webhook；Service 處理指令與回覆流程；Repository 集中資料庫讀寫。
+
+## 測試與格式檢查
+
+```bash
+vendor/bin/phpunit
+vendor/bin/pint --test
+```
+
+測試涵蓋有效與無效簽章、非文字事件、事件去重、使用者／案件建立，以及 LINE API 回覆失敗時的事件狀態。
+
+## 目前刻意不做的事
+
+- 不下載或 OCR 圖片、影片、音訊、檔案。
+- 不加入 AI、支付或其他第三方服務。
+- 不用 queue 延遲 reply；reply token 只能用一次且有時效，任何耗時工作應改為立即回覆後以 Queue 與 push message 接手。
+- LINE API 回覆失敗的事件會標示為 `failed`，尚未提供自動重送機制。
+
+## 建議 GitHub metadata
+
+- Description：`Laravel 13 LINE Messaging API example with signed webhooks, event deduplication, FAQ and ticket workflow.`
+- Topics：`laravel`, `line`, `line-bot`, `messaging-api`, `webhook`, `php`
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT. See [LICENSE](LICENSE).

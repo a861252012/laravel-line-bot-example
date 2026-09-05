@@ -2,51 +2,38 @@
 
 namespace App\Http\Controllers;
 
-use GuzzleHttp\Client as GuzzleHttpClient;
+use App\Services\Line\LineWebhookService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use LINE\Clients\MessagingApi\Api\MessagingApiApi;
-use LINE\Clients\MessagingApi\Configuration;
-use LINE\Clients\MessagingApi\Model\ReplyMessageRequest;
-use LINE\Clients\MessagingApi\Model\TextMessage;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class LineBotController extends Controller
 {
-    private MessagingApiApi $messagingApi;
-
-    public function __construct()
+    public function receive(Request $request, LineWebhookService $lineWebhookService): JsonResponse
     {
-        $client = new GuzzleHttpClient();
-        $config = new Configuration();
-        $config->setAccessToken(env('LINE_CHANNEL_ACCESS_TOKEN'));
+        $events = $request->json('events', []);
 
-        $this->messagingApi = new MessagingApiApi(
-            client: $client,
-            config: $config
-        );
-    }
+        if (! is_array($events)) {
+            return response()->json(['status' => 'ok']);
+        }
 
-    public function webhook(Request $request)
-    {
-        $data = json_decode($request->getContent(), true);
+        foreach ($events as $event) {
+            if (! is_array($event)) {
+                continue;
+            }
 
-        if (!empty($data['events'])) {
-            foreach ($data['events'] as $event) {
-                if ($event['type'] === 'message' && $event['message']['type'] === 'text') {
-                    $replyToken = $event['replyToken'];
-                    $userMessage = $event['message']['text'];
-
-                    $message = new TextMessage(['type' => 'text', 'text' => $userMessage]);
-                    $replyRequest = new ReplyMessageRequest(['replyToken' => $replyToken, 'messages' => [$message]]);
-
-                    try {
-                        $this->messagingApi->replyMessage($replyRequest);
-                    } catch (\Exception $e) {
-                        logger()->error($e->getCode() . ' ' . $e->getMessage());
-                    }
-                }
+            try {
+                $lineWebhookService->process($event);
+            } catch (Throwable $exception) {
+                Log::error('LINE webhook processing failed.', [
+                    'webhook_event_id' => $event['webhookEventId'] ?? null,
+                    'exception' => $exception::class,
+                    'code' => $exception->getCode(),
+                ]);
             }
         }
 
-        return response()->json(['status' => 'success']);
+        return response()->json(['status' => 'ok']);
     }
 }
