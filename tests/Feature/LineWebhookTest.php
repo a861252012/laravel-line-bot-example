@@ -3,8 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\LineEvent;
-use App\Models\LineUser;
-use App\Models\Ticket;
 use App\Services\Line\LineMessagingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
@@ -16,14 +14,14 @@ class LineWebhookTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_valid_signature_creates_user_event_and_ticket(): void
+    public function test_valid_signature_stores_processed_text_event(): void
     {
         config(['services.line.channel_secret' => 'test-channel-secret']);
 
         $this->mock(LineMessagingService::class, function (MockInterface $mock): void {
             $mock->shouldReceive('replyText')
                 ->once()
-                ->withArgs(fn (string $replyToken, string $text): bool => $replyToken === 'reply-token' && str_contains($text, '案件 #1 已建立'));
+                ->with('reply-token', '已記錄文字訊息。');
         });
 
         $response = $this->postWebhook([
@@ -32,18 +30,19 @@ class LineWebhookTest extends TestCase
                 'webhookEventId' => 'event-001',
                 'replyToken' => 'reply-token',
                 'source' => ['type' => 'user', 'userId' => 'U123'],
-                'message' => ['id' => 'message-001', 'type' => 'text', 'text' => '問題 無法登入'],
+                'message' => ['id' => 'message-001', 'type' => 'text', 'text' => '你好'],
             ]],
         ]);
 
         $response->assertOk()->assertJson(['status' => 'ok']);
-        $this->assertDatabaseHas('line_users', ['line_user_id' => 'U123']);
-        $this->assertDatabaseHas('tickets', ['id' => 1, 'subject' => '無法登入', 'status' => Ticket::STATUS_OPEN]);
         $this->assertDatabaseHas('line_events', [
             'webhook_event_id' => 'event-001',
             'event_type' => 'message',
             'status' => LineEvent::STATUS_PROCESSED,
         ]);
+        $lineEvent = LineEvent::query()->firstOrFail();
+
+        $this->assertSame('U123', data_get($lineEvent->payload, 'source.userId'));
     }
 
     public function test_invalid_signature_is_rejected_before_an_event_is_stored(): void
@@ -56,14 +55,14 @@ class LineWebhookTest extends TestCase
         $this->assertDatabaseCount('line_events', 0);
     }
 
-    public function test_non_text_image_event_is_stored_and_acknowledged(): void
+    public function test_image_event_is_stored_and_acknowledged(): void
     {
         config(['services.line.channel_secret' => 'test-channel-secret']);
 
         $this->mock(LineMessagingService::class, function (MockInterface $mock): void {
             $mock->shouldReceive('replyText')
                 ->once()
-                ->withArgs(fn (string $replyToken, string $text): bool => $replyToken === 'reply-token' && str_contains($text, '已收到圖片'));
+                ->with('reply-token', '已記錄圖片事件。');
         });
 
         $response = $this->postWebhook([
@@ -77,9 +76,43 @@ class LineWebhookTest extends TestCase
         ]);
 
         $response->assertOk();
-        $this->assertDatabaseHas('line_users', ['line_user_id' => 'U456']);
         $this->assertDatabaseHas('line_events', [
             'webhook_event_id' => 'event-002',
+            'event_type' => 'message',
+            'status' => LineEvent::STATUS_PROCESSED,
+        ]);
+    }
+
+    public function test_location_event_is_stored_and_acknowledged(): void
+    {
+        config(['services.line.channel_secret' => 'test-channel-secret']);
+
+        $this->mock(LineMessagingService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('replyText')
+                ->once()
+                ->with('reply-token', '已記錄位置事件。');
+        });
+
+        $response = $this->postWebhook([
+            'events' => [[
+                'type' => 'message',
+                'webhookEventId' => 'event-003',
+                'replyToken' => 'reply-token',
+                'source' => ['type' => 'user', 'userId' => 'U789'],
+                'message' => [
+                    'id' => 'message-003',
+                    'type' => 'location',
+                    'title' => '台北車站',
+                    'address' => '台北市中正區',
+                    'latitude' => 25.0478,
+                    'longitude' => 121.5170,
+                ],
+            ]],
+        ]);
+
+        $response->assertOk();
+        $this->assertDatabaseHas('line_events', [
+            'webhook_event_id' => 'event-003',
             'event_type' => 'message',
             'status' => LineEvent::STATUS_PROCESSED,
         ]);
@@ -96,10 +129,10 @@ class LineWebhookTest extends TestCase
         $payload = [
             'events' => [[
                 'type' => 'message',
-                'webhookEventId' => 'event-003',
+                'webhookEventId' => 'event-004',
                 'replyToken' => 'reply-token',
                 'source' => ['type' => 'user', 'userId' => 'U789'],
-                'message' => ['id' => 'message-003', 'type' => 'text', 'text' => '問題 重複事件'],
+                'message' => ['id' => 'message-004', 'type' => 'text', 'text' => '重複事件'],
             ]],
         ];
 
@@ -107,60 +140,6 @@ class LineWebhookTest extends TestCase
         $this->postWebhook($payload)->assertOk();
 
         $this->assertDatabaseCount('line_events', 1);
-        $this->assertDatabaseCount('tickets', 1);
-    }
-
-    public function test_faq_postback_is_processed(): void
-    {
-        config(['services.line.channel_secret' => 'test-channel-secret']);
-
-        $this->mock(LineMessagingService::class, function (MockInterface $mock): void {
-            $mock->shouldReceive('replyFaq')->once()->with('reply-token');
-        });
-
-        $response = $this->postWebhook([
-            'events' => [[
-                'type' => 'postback',
-                'webhookEventId' => 'event-004',
-                'replyToken' => 'reply-token',
-                'source' => ['type' => 'user', 'userId' => 'U123'],
-                'postback' => ['data' => 'action=faq'],
-            ]],
-        ]);
-
-        $response->assertOk();
-        $this->assertDatabaseHas('line_events', [
-            'webhook_event_id' => 'event-004',
-            'event_type' => 'postback',
-            'status' => LineEvent::STATUS_PROCESSED,
-        ]);
-    }
-
-    public function test_ticket_can_be_closed_by_its_owner(): void
-    {
-        config(['services.line.channel_secret' => 'test-channel-secret']);
-
-        $lineUser = LineUser::query()->create(['line_user_id' => 'U123', 'source_type' => 'user']);
-        $ticket = Ticket::query()->create(['line_user_id' => $lineUser->id, 'subject' => '無法登入']);
-
-        $this->mock(LineMessagingService::class, function (MockInterface $mock): void {
-            $mock->shouldReceive('replyText')
-                ->once()
-                ->withArgs(fn (string $replyToken, string $text): bool => $replyToken === 'reply-token' && str_contains($text, '案件 #1 已關閉'));
-        });
-
-        $response = $this->postWebhook([
-            'events' => [[
-                'type' => 'message',
-                'webhookEventId' => 'event-005',
-                'replyToken' => 'reply-token',
-                'source' => ['type' => 'user', 'userId' => 'U123'],
-                'message' => ['id' => 'message-005', 'type' => 'text', 'text' => '關閉 #1'],
-            ]],
-        ]);
-
-        $response->assertOk();
-        $this->assertDatabaseHas('tickets', ['id' => $ticket->id, 'status' => Ticket::STATUS_CLOSED]);
     }
 
     public function test_line_api_failure_marks_the_event_as_failed(): void
@@ -174,16 +153,16 @@ class LineWebhookTest extends TestCase
         $response = $this->postWebhook([
             'events' => [[
                 'type' => 'message',
-                'webhookEventId' => 'event-006',
+                'webhookEventId' => 'event-005',
                 'replyToken' => 'reply-token',
                 'source' => ['type' => 'user', 'userId' => 'U999'],
-                'message' => ['id' => 'message-004', 'type' => 'text', 'text' => '問題 API 失敗'],
+                'message' => ['id' => 'message-005', 'type' => 'text', 'text' => 'LINE API 失敗'],
             ]],
         ]);
 
         $response->assertOk();
         $this->assertDatabaseHas('line_events', [
-            'webhook_event_id' => 'event-006',
+            'webhook_event_id' => 'event-005',
             'status' => LineEvent::STATUS_FAILED,
         ]);
     }

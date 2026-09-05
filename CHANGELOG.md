@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- Remove the placeholder FAQ, ticket and Rich Menu features. The project now focuses on signed webhook handling and event recording.
+
 ## [0.1.1] - 2026-09-05
 
 ### Fixed

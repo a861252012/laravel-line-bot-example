@@ -11,7 +11,6 @@ return new class extends Migration
         Schema::create('line_events', function (Blueprint $table) {
             $table->id();
             $table->string('webhook_event_id')->unique();
-            $table->foreignId('line_user_id')->nullable()->constrained('line_users')->nullOnDelete();
             $table->string('event_type', 50);
             $table->json('payload');
             $table->string('status', 20)->default('received');

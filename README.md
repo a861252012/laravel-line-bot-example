@@ -1,23 +1,21 @@
 # Laravel LINE Bot Practice
 
-Laravel 13 的 LINE Messaging API 練習專案。收到 webhook 後會先驗證簽章，再處理 FAQ 與問題追蹤。
+Laravel 13 的 LINE Messaging API webhook 練習專案。收到 webhook 後會先驗證簽章、去重，再保存原始事件。
 
 ## 功能
 
-- 驗證 LINE webhook 簽章。
+- 使用未修改的 raw request body 驗證 LINE webhook 簽章。
 - 用 `webhookEventId` 避免重複處理同一事件。
-- 建立、查詢與關閉問題案件。
-- 支援文字、Postback、圖片、位置與附件事件。
+- 將事件內容保存到 `line_events`。
+- 收到文字、圖片或位置訊息時，回覆一則確認訊息。
 
-## 指令
+## 支援的訊息
 
-| 輸入 | 功能 |
+| 類型 | 回覆 |
 | --- | --- |
-| `幫助` | 顯示操作選單 |
-| `FAQ` | 顯示常見問題 |
-| `問題 無法登入` | 建立問題案件 |
-| `我的案件` | 查看自己的開啟中案件 |
-| `關閉 #1` | 關閉自己的案件 |
+| 文字 | 已記錄文字訊息 |
+| 圖片 | 已記錄圖片事件 |
+| 位置 | 已記錄位置事件 |
 
 ## 安裝
 

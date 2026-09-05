@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LineEvent extends Model
 {
@@ -15,7 +14,6 @@ class LineEvent extends Model
 
     protected $fillable = [
         'webhook_event_id',
-        'line_user_id',
         'event_type',
         'payload',
         'status',
@@ -26,9 +24,4 @@ class LineEvent extends Model
         'payload' => 'array',
         'processed_at' => 'datetime',
     ];
-
-    public function lineUser(): BelongsTo
-    {
-        return $this->belongsTo(LineUser::class);
-    }
 }
