@@ -33,6 +33,8 @@
 - MySQL、MariaDB 或 SQLite
 - LINE Developers 的 Messaging API channel
 
+`composer.lock` 會以 PHP 8.3 解析；CI 同時檢查 PHP 8.3 與 8.4。
+
 ## 安裝
 
 ```bash
@@ -112,7 +114,7 @@ vendor/bin/pint --test
 
 ## Release
 
-[v0.1.0](https://github.com/a861252012/laravel-line-bot-example/releases/tag/v0.1.0) 是第一個公開版本，包含簽章驗證、事件去重、FAQ／工單流程、文件與 CI。
+[v0.1.1](https://github.com/a861252012/laravel-line-bot-example/releases/tag/v0.1.1) 是目前穩定版；[v0.1.0](https://github.com/a861252012/laravel-line-bot-example/releases/tag/v0.1.0) 是第一個公開版本。兩者都包含簽章驗證、事件去重、FAQ／工單流程、文件與 CI。
 
 ## License
 

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-09-05
+
+### Fixed
+
+- Resolve Composer dependencies against PHP 8.3 so the lock file installs on every supported CI version.
+
 ## [0.1.0] - 2026-09-05
 
 ### Added
