@@ -28,12 +28,12 @@
 
 ## 環境需求
 
-- PHP 8.3 以上
+- PHP 8.4 以上
 - Composer 2
 - MySQL、MariaDB 或 SQLite
 - LINE Developers 的 Messaging API channel
 
-`composer.lock` 會以 PHP 8.3 解析；CI 同時檢查 PHP 8.3 與 8.4。
+`composer.lock` 會以 PHP 8.4 解析；CI 檢查 PHP 8.4。
 
 ## 安裝
 
